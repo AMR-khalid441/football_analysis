@@ -118,7 +118,7 @@ What is implemented (current repo)
 1. **Jersey Number Recognition** — not yet implemented  
    - Add OCR/CNN module to detect numbers from player crops.  
    - Aggregate per-player results and draw on frames.  
-   - ⚠️ Video quality is poor, making OCR challenging but still in progress.
+
 
 2. **Notebook Deliverable** — `notebooks/jersey_number_detection.ipynb`  
    - Demo detection on sample frames.  
