@@ -109,9 +109,12 @@ Make sure your YOLO model is saved as models/best.pt
 
 # Run:
 
-bash
-Copy code
+```bash
+
 python main.py
+```
+Copy code
+
 Output will be saved to output_videos/ with all detections and tracking results
 
 📈 Notes
