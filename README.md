@@ -41,22 +41,31 @@ to install everything at once (recommended for running the full project):
 Copy code
 pip install -r requirements.txt
 ```
-📓 Model Notebook (Training / Fine-tuning)
-You can view the notebook used for model training and fine-tuning here:
 
-🔗 Football YOLOv8 Model Notebook (Conda)
 
-This notebook includes:
 
-Dataset preparation
 
-YOLOv5 model training
 
-Evaluation and inference examples
+
+## 📓 Model Notebook (Training / Fine-tuning)
+
+This notebook demonstrates how the **YOLOv8 model was fine-tuned** to accurately detect **players, referees, the ball, and goalkeepers** on the football field.
+
+🔗 [**Open Football YOLOv5 Model Notebook (Google Drive)**](https://drive.google.com/drive/folders/1zk8Dbs9FHfxVOY8N28milCaVb83QV31t?usp=drive_link)
+It includes:
+- Dataset preparation and labeling  
+- Model configuration and fine-tuning process  
+- Evalu
+
+
+
+
 
 🎥 Output Videos
 Below are three output samples demonstrating the system:
 
+Drive link : 
+   🎥 [Sample Video (Google Drive)](<https://drive.google.com/file/d/1k2Qxd9zia1oz50TwX6sha8my_zZY7o-R/view?usp=sharing>)
 Video	Description
 Output 1	Full match view — detects players and referees
 
@@ -79,6 +88,7 @@ Statistics Module — Calculates ball control and distance metrics
 Flow Diagram:
 
 📊
+![Alt text](src/assets/images/photo_2025-10-17_18-04-59.jpg)
 
 
 
@@ -96,6 +106,23 @@ Output will be saved to output_videos/ with all detections and tracking results
 
 📈 Notes
 The current version detects players, teams, and referees, but the ball label still needs fine-tuning.
+
+What is implemented (current repo)
+- Player/referee/ball detection + tracking: implemented via Tracker / YOLO model
+- Team color assignment: implemented (team_assigner)
+- Camera motion compensation, view transform, speed/distance estimation: implemented
+- End-to-end video pipeline: implemented in src/main.py
+
+## 🚧 Next Steps
+
+1. **Jersey Number Recognition** — not yet implemented  
+   - Add OCR/CNN module to detect numbers from player crops.  
+   - Aggregate per-player results and draw on frames.  
+   - ⚠️ Video quality is poor, making OCR challenging but still in progress.
+
+2. **Notebook Deliverable** — `notebooks/jersey_number_detection.ipynb`  
+   - Demo detection on sample frames.  
+   - Show jersey OCR + aggregated results + visuals.
 
 The system runs frame-by-frame and saves a processed video automatically.
 
