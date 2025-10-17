@@ -1,2 +1,6 @@
 *__pycahce__*
 *.pyc
+input_videos
+output_videos
+models
+logs
