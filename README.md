@@ -67,10 +67,6 @@ You can download the model from Google Drive using the link below:
 After downloading, place the file inside the `models/` directory:
 
 
-
-
-
- 
 # 🎥Output Videos
 Below are three output samples demonstrating the system:
 
@@ -78,6 +74,15 @@ Drive link :
    🎥 [Sample Video (Google Drive)](<https://drive.google.com/file/d/1k2Qxd9zia1oz50TwX6sha8my_zZY7o-R/view?usp=sharing>)
 Video	Description
 Output 1	Full match view — detects players and referees
+
+
+## 🎬 Sample Output — Local Run
+
+Here’s a short demo video showing the pipeline running locally on my machine.  
+It demonstrates player, referee, and ball detection, team differentiation, and tracking.
+
+📹 [Watch the sample output video on Google Drive](https://drive.google.com/file/d/1LrR24f6LFKTV6bF0Ea3Ajp_T-xs0x9R4/view?usp=sharing)
+
 
 
 (If GitHub doesn’t show video previews, you can upload short GIFs or screenshots instead.)
