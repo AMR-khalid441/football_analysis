@@ -95,9 +95,9 @@ Annotator — Draws detections and adds team and referee labels
 
 Statistics Module — Calculates ball control and distance metrics
 
-Flow Diagram:
 
-📊
+
+# 📊Flow Diagram:
 ![Alt text](src/assets/images/photo_2025-10-17_18-04-59.jpg)
 
 
@@ -107,7 +107,7 @@ Add your input video to the input_videos/ folder
 
 Make sure your YOLO model is saved as models/best.pt
 
-Run:
+# Run:
 
 bash
 Copy code
