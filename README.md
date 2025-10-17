@@ -70,8 +70,8 @@ After downloading, place the file inside the `models/` directory:
 
 
 
-🎥 
-# Output Videos
+ 
+# 🎥Output Videos
 Below are three output samples demonstrating the system:
 
 Drive link : 
