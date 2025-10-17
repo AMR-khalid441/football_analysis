@@ -19,8 +19,7 @@ Before starting, make sure you have Conda installed (via Anaconda
  or Miniconda
 ).
 
-1️⃣ Create a Conda environment
-
+1️⃣ Create a Conda environment 
 ```bash
 conda create -n football_analysis python=3.11
 ```
@@ -56,6 +55,16 @@ It includes:
 - Dataset preparation and labeling  
 - Model configuration and fine-tuning process  
 - Evalu
+
+## 📦 Model Download
+
+To run this project, you’ll need to download the trained YOLO model used for player, referee, and ball detection.
+
+You can download the model from Google Drive using the link below:
+
+👉 [Download YOLO Model (best.pt)](https://drive.google.com/file/d/1XVBKxLP5DHxaqX896YocF_476G0pH8FE/view?usp=drive_link)
+
+After downloading, place the file inside the `models/` directory:
 
 
 
