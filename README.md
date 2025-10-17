@@ -145,9 +145,10 @@ AI Engineer — Computer Vision
 
 📍 Cairo, Egypt
 
-🔗 LinkedIn
+🔗 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=flat&logo=linkedin)](https://www.linkedin.com/in/amr-khalid-23a86b1a3/)
 
-🔗 GitHub
+
+💻 [![GitHub](https://img.shields.io/badge/GitHub-AMR--khalid441-black?style=flat&logo=github)](https://github.com/AMR-khalid441)
 
 
 
