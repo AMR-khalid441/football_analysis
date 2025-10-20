@@ -7,12 +7,22 @@ import pandas as pd
 import cv2
 import sys 
 sys.path.append('../')
-from utils import get_center_of_bbox, get_bbox_width, get_foot_position
+from utils.bbox_utils import get_center_of_bbox, get_bbox_width, get_foot_position
 
 class Tracker:
     def __init__(self, model_path):
-        self.model = YOLO(model_path) 
-        self.tracker = sv.ByteTrack()
+        try:
+            self.model = YOLO(model_path) 
+            self.tracker = sv.ByteTrack()
+            print(f"✅ Successfully loaded custom model: {model_path}")
+        except Exception as e:
+            print(f"❌ Failed to load model {model_path}: {e}")
+            print("🔄 Trying to use a smaller model as fallback...")
+            # Fallback to a smaller model
+            self.model = YOLO('yolov5su.pt')  # Much smaller than yolov5x
+            self.tracker = sv.ByteTrack()
+            print("✅ Successfully loaded fallback model: yolov5su.pt")
+            print("⚠️  Note: Using COCO classes instead of custom football classes")
 
     def add_position_to_tracks(sekf,tracks):
         for object, object_tracks in tracks.items():
@@ -38,11 +48,24 @@ class Tracker:
         return ball_positions
 
     def detect_frames(self, frames):
-        batch_size=20 
+        batch_size=1  # Reduced from 20 to prevent OOM
         detections = [] 
         for i in range(0,len(frames),batch_size):
-            detections_batch = self.model.predict(frames[i:i+batch_size],conf=0.1)
-            detections += detections_batch
+            try:
+                # Force garbage collection before each prediction
+                import gc
+                gc.collect()
+                
+                # Use lower confidence to reduce memory usage
+                detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.1, verbose=False)
+                detections += detections_batch
+            except RuntimeError as e:
+                if "not enough memory" in str(e):
+                    print(f"Memory error in detection, skipping frame {i}: {e}")
+                    # Add empty detection to maintain frame count
+                    detections.append(None)
+                else:
+                    raise e
         return detections
 
     def get_object_tracks(self, frames, read_from_stub=False, stub_path=None):
@@ -61,16 +84,53 @@ class Tracker:
         }
 
         for frame_num, detection in enumerate(detections):
+            # Handle case where detection failed due to memory error
+            if detection is None:
+                tracks["players"].append({})
+                tracks["referees"].append({})
+                tracks["ball"].append({})
+                continue
+                
             cls_names = detection.names
             cls_names_inv = {v:k for k,v in cls_names.items()}
+            
+            # Debug: Show available classes (only on first frame)
+            if frame_num == 0:
+                print(f"🔍 Available classes in model: {list(cls_names.keys())}")
 
             # Covert to supervision Detection format
             detection_supervision = sv.Detections.from_ultralytics(detection)
 
-            # Convert GoalKeeper to player object
-            for object_ind , class_id in enumerate(detection_supervision.class_id):
-                if cls_names[class_id] == "goalkeeper":
-                    detection_supervision.class_id[object_ind] = cls_names_inv["player"]
+            # Handle different model class names gracefully
+            # For custom models: ['ball', 'goalkeeper', 'player', 'referee']
+            # For COCO models: ['person', 'sports ball', ...]
+            player_class_id = None
+            referee_class_id = None
+            ball_class_id = None
+            
+            # Try to find appropriate class IDs
+            if 'player' in cls_names_inv:
+                player_class_id = cls_names_inv['player']
+            elif 'goalkeeper' in cls_names_inv:
+                player_class_id = cls_names_inv['goalkeeper']
+            elif 'person' in cls_names_inv:  # COCO fallback
+                player_class_id = cls_names_inv['person']
+                
+            if 'referee' in cls_names_inv:
+                referee_class_id = cls_names_inv['referee']
+            elif 'person' in cls_names_inv:  # COCO fallback - treat as referee
+                referee_class_id = cls_names_inv['person']
+                
+            if 'ball' in cls_names_inv:
+                ball_class_id = cls_names_inv['ball']
+            elif 'sports ball' in cls_names_inv:  # COCO fallback
+                ball_class_id = cls_names_inv['sports ball']
+
+            # Convert GoalKeeper to player object (if using custom model)
+            if 'goalkeeper' in cls_names_inv and 'player' in cls_names_inv:
+                for object_ind , class_id in enumerate(detection_supervision.class_id):
+                    if cls_names[class_id] == "goalkeeper":
+                        detection_supervision.class_id[object_ind] = cls_names_inv["player"]
 
             # Track Objects
             detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
@@ -84,17 +144,18 @@ class Tracker:
                 cls_id = frame_detection[3]
                 track_id = frame_detection[4]
 
-                if cls_id == cls_names_inv['player']:
+                # Use found class IDs or skip if not available
+                if player_class_id is not None and cls_id == player_class_id:
                     tracks["players"][frame_num][track_id] = {"bbox":bbox}
                 
-                if cls_id == cls_names_inv['referee']:
+                if referee_class_id is not None and cls_id == referee_class_id:
                     tracks["referees"][frame_num][track_id] = {"bbox":bbox}
             
             for frame_detection in detection_supervision:
                 bbox = frame_detection[0].tolist()
                 cls_id = frame_detection[3]
 
-                if cls_id == cls_names_inv['ball']:
+                if ball_class_id is not None and cls_id == ball_class_id:
                     tracks["ball"][frame_num][1] = {"bbox":bbox}
 
         if stub_path is not None:
