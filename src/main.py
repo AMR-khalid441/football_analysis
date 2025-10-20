@@ -26,6 +26,11 @@ def main():
     MIN_PLAYERS_FOR_KMEANS = 6
     BALL_MAX_GAP_FRAMES = 15
     
+    # Team assignment configuration
+    TEAM_CONFIDENCE_THRESHOLD = 0.6
+    TEAM_HYSTERESIS_FRAMES = 5
+    TEAM_MIN_COLOR_SEPARATION = 50.0
+    
     # -------------------------------
     # Base directory
     # -------------------------------
@@ -60,6 +65,12 @@ def main():
     tracker = Tracker(model_path)
     camera_estimator = CameraMovementEstimator(None)  # frame will be set later
     team_assigner = TeamAssigner()
+    
+    # Configure team assigner with thresholds
+    team_assigner.confidence_threshold = TEAM_CONFIDENCE_THRESHOLD
+    team_assigner.hysteresis_frames = TEAM_HYSTERESIS_FRAMES
+    team_assigner.min_color_separation = TEAM_MIN_COLOR_SEPARATION
+    
     player_assigner = PlayerBallAssigner()
     view_transformer = ViewTransformer()
     speed_distance_estimator = SpeedAndDistance_Estimator()
@@ -199,16 +210,25 @@ def main():
         if hasattr(team_assigner, "kmeans") and team_assigner.kmeans is not None:
             for player_id, player_data in players_frame.items():
                 try:
+                    # Use new hysteresis-aware assignment
                     team = team_assigner.get_player_team(frame, player_data['bbox'], player_id)
+                    
                     tracks["players"][frame_num][player_id]['team'] = team
-                    tracks["players"][frame_num][player_id]['team_color'] = team_assigner.team_colors.get(team, (0, 255, 0))
+                    
+                    # Get team color (handle -1 for unknown)
+                    if team in team_assigner.team_colors:
+                        tracks["players"][frame_num][player_id]['team_color'] = team_assigner.team_colors[team]
+                    else:
+                        tracks["players"][frame_num][player_id]['team_color'] = (0, 255, 0)  # Green for unknown
+                        
                 except Exception as e:
                     logger.debug(f"Team assignment failed for player {player_id}: {e}")
                     tracks["players"][frame_num][player_id]['team'] = -1
                     tracks["players"][frame_num][player_id]['team_color'] = (0, 255, 0)
         else:
+            # Same as before: set all to -1 if kmeans not ready
             logger.debug("Team KMeans not initialized yet; skipping team assignment this frame.")
-            for player_id, player_data in players_frame.items():
+            for player_id in players_frame.keys():
                 tracks["players"][frame_num][player_id]['team'] = -1
                 tracks["players"][frame_num][player_id]['team_color'] = (0, 255, 0)
 
