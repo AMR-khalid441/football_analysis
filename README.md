@@ -45,6 +45,14 @@ Detailed system architecture, design patterns, component interactions, and data 
 - ✅ **View Transformation**: Coordinate system conversions
 - ✅ **Modular Design**: Component-based architecture with clean interfaces
 
+## 📊 System Flow
+
+### Sequence Diagram
+
+The following diagram shows the complete processing flow of the Football Analysis System:
+
+![System Flow Diagram](src/assets/images/sequance.png)
+
 ## 🏁 Quick Run
 
 1. Add your input video to `input_videos/` folder
