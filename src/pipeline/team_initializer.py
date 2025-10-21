@@ -5,7 +5,7 @@ logger = logging.getLogger("football_analysis")
 
 def initialize_team_colors(tracker, team_assigner, camera_estimator, first_frame, config):
     """
-    Extract lines 90-133 from main.py
+   
     Initialize team colors using K-Means clustering on first frame
     """
     # Initialize trackers with first frame if needed

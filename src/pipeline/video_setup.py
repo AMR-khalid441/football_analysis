@@ -3,7 +3,6 @@ from utils import read_video
 
 def setup_video_io(input_path, output_path):
     """
-    Extract lines 78-88 from main.py
     Setup video input/output with first frame validation
     """
     # -------------------------------

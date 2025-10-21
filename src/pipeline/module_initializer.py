@@ -7,7 +7,7 @@ from speed_and_distance_estimator import SpeedAndDistance_Estimator
 
 def initialize_modules(config):
     """
-    Extract lines 62-76 from main.py
+    
     Initialize all AI modules with configuration
     """
     # -------------------------------

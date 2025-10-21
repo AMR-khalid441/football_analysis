@@ -1,167 +1,63 @@
 # Football Analysis System
 
-This project is a football match analysis system built using YOLOv8 and computer vision techniques.  
-It detects players, referees, and the ball, identifies teams based on colors, and tracks movements across the field.
+> **Advanced Computer Vision System for Football Match Analysis**
 
----
+A comprehensive football analysis system built with YOLOv5, ByteTrack, and advanced computer vision techniques for player detection, team assignment, and movement analysis.
 
-## ⚙️ Requirements
-
-To run this application, make sure you have the following installed:
-
-- Python 3.10 or above
-- pip (latest version)
-- The following libraries:
-  ```bash
-  pip install ultralytics supervision 📦 Requirements & Installation
-
-Before starting, make sure you have Conda installed (via Anaconda
- or Miniconda
-).
-
-1️⃣ Create a Conda environment 
-```bash
-conda create -n football_analysis python=3.11
-```
-
-activate it ..
-```bash
-conda activate football_analysis
-```
-2️⃣ Install the required libraries
-
-
-to install everything at once (recommended for running the full project):
-
-
-
+## 🚀 Quick Start
 
 ```bash
-Copy code
+# Install dependencies
 pip install -r requirements.txt
-```
 
+# Download model
+# Place best.pt in models/ directory
 
-
-
-
-
-## 📓 Model Notebook (Training / Fine-tuning)
-
-This notebook demonstrates how the **YOLOv8 model was fine-tuned** to accurately detect **players, referees, the ball, and goalkeepers** on the football field.
-
-🔗 [**Open Football YOLOv5 Model Notebook (Google Drive)**](https://drive.google.com/drive/folders/1zk8Dbs9FHfxVOY8N28milCaVb83QV31t?usp=drive_link)
-It includes:
-- Dataset preparation and labeling  
-- Model configuration and fine-tuning process  
-- Evalu
-
-## 📦 Model Download
-
-To run this project, you’ll need to download the trained YOLO model used for player, referee, and ball detection.
-
-You can download the model from Google Drive using the link below:
-
-👉 [Download YOLO Model (best.pt)](https://drive.google.com/file/d/1XVBKxLP5DHxaqX896YocF_476G0pH8FE/view?usp=drive_link)
-
-After downloading, place the file inside the `models/` directory:
-
-
-# 🎥Output Videos
-Below are three output samples demonstrating the system:
-
-Drive link : 
-   🎥 [Sample Video (Google Drive)](<https://drive.google.com/file/d/1k2Qxd9zia1oz50TwX6sha8my_zZY7o-R/view?usp=sharing>)
-Video	Description
-Output 1	Full match view — detects players and referees
-
-
-## 🎬 Sample Output — Local Run
-
-Here’s a short demo video showing the pipeline running locally on my machine.  
-It demonstrates player, referee, and ball detection, team differentiation, and tracking.
-
-📹 [Watch the sample output video on Google Drive](https://drive.google.com/file/d/1LrR24f6LFKTV6bF0Ea3Ajp_T-xs0x9R4/view?usp=sharing)
-
-
-
-(If GitHub doesn’t show video previews, you can upload short GIFs or screenshots instead.)
-
-
-🔧 Components & Flow Diagram
-Components Overview
-YOLOv5 Detector — Detects players, referees, and the ball
-
-Tracker — Keeps consistent IDs across frames
-
-Team Assigner — Differentiates between teams using dominant color clustering
-
-Annotator — Draws detections and adds team and referee labels
-
-Statistics Module — Calculates ball control and distance metrics
-
-
-
-# 📊Flow Diagram:
-![Alt text](src/assets/images/photo_2025-10-17_18-04-59.jpg)
-
-
-
-🏁 How to Run
-Add your input video to the input_videos/ folder
-
-Make sure your YOLO model is saved as models/best.pt
-
-# Run:
-
-```bash
-
+# Run analysis
 python main.py
 ```
-Copy code
 
-Output will be saved to output_videos/ with all detections and tracking results
+## 📚 Documentation
 
-📈 Notes
-The current version detects players, teams, and referees, but the ball label still needs fine-tuning.
+### 📖 User Guide
+Complete setup instructions, installation guide, and usage examples for getting started with the system.
 
-What is implemented (current repo)
-- Player/referee/ball detection + tracking: implemented via Tracker / YOLO model
-- Team color assignment: implemented (team_assigner)
-- Camera motion compensation, view transform, speed/distance estimation: implemented
-- End-to-end video pipeline: implemented in src/main.py
+👉 **[View User Guide](docs/USER_GUIDE.md)**
 
-## 🚧 Next Steps
+### 🔧 Technical Reference  
+Comprehensive API documentation covering all modules, functions, classes, and their detailed usage with code examples.
 
-1. **Jersey Number Recognition** — not yet implemented  
-   - Add OCR/CNN module to detect numbers from player crops.  
-   - Aggregate per-player results and draw on frames.  
+👉 **[View API Documentation](docs/API_DOCS.md)**
 
+### 🏗️ System Architecture
+Detailed system architecture, design patterns, component interactions, and data flow diagrams.
 
-2. **Notebook Deliverable** — `notebooks/jersey_number_detection.ipynb`  
-   - Demo detection on sample frames.  
-   - Show jersey OCR + aggregated results + visuals.
+👉 **[View Architecture](docs/ARCHITECTURE.md)**
 
-The system runs frame-by-frame and saves a processed video automatically.
+## 🎯 Features
 
-You can modify detection confidence or classes directly in main.py if needed.
+- ✅ **YOLOv5 Detection**: Advanced player, referee, and ball detection
+- ✅ **ByteTrack Tracking**: Consistent object tracking across frames
+- ✅ **Team Assignment**: K-Means clustering for team color differentiation
+- ✅ **Camera Motion**: Lucas-Kanade optical flow for motion compensation
+- ✅ **Speed Analysis**: Exponential smoothing for smooth speed measurements
+- ✅ **Ball Control**: Proximity-based ball assignment to players
+- ✅ **View Transformation**: Coordinate system conversions
+- ✅ **Modular Design**: Component-based architecture with clean interfaces
 
-👨‍💻 Author
-Amr Khalid
+## 🏁 Quick Run
 
-AI Engineer — Computer Vision
+1. Add your input video to `input_videos/` folder
+2. Ensure YOLOv5 model is saved as `models/best.pt`
+3. Run: `python main.py`
+4. Output saved to `output_videos/` with all detections and tracking
+
+## 👨‍💻 Author
+
+**Amr Khalid** - AI Engineer & Computer Vision Specialist
 
 📍 Cairo, Egypt
 
 🔗 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-blue?style=flat&logo=linkedin)](https://www.linkedin.com/in/amr-khalid-23a86b1a3/)
 
-
 💻 [![GitHub](https://img.shields.io/badge/GitHub-AMR--khalid441-black?style=flat&logo=github)](https://github.com/AMR-khalid441)
-
-
-
-
-
-
-
-

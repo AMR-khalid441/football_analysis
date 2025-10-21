@@ -28,7 +28,7 @@ def get_video_resolution(video_path):
 
 def setup_configuration():
     """
-    Extract lines 22-60 from main.py
+   
     Configuration constants, paths, and file validation
     """
     # -------------------------------

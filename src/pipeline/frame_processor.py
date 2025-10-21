@@ -9,7 +9,7 @@ logger = logging.getLogger("football_analysis")
 
 def process_video_frames(video_gen, first_frame, modules, config, out_writer):
     """
-    Extract lines 135-291 from main.py
+   
     Main frame processing loop with all detection, tracking, and annotation logic
     """
     # Storage for tracks and ball control
