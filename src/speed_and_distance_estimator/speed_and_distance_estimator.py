@@ -7,6 +7,35 @@ class SpeedAndDistance_Estimator():
     def __init__(self):
         self.frame_window=5
         self.frame_rate=24
+        # Add smoothing infrastructure
+        self.smoothed_speeds = {}  # track_id -> last_smoothed_speed
+        self.smoothing_alpha = 0.3  # Configurable smoothing parameter (0-1)
+    
+    def smooth_speed_exponential(self, track_id, new_speed):
+        """
+        Apply exponential smoothing to speed measurements.
+        
+        Formula: smoothed = α * new + (1-α) * previous
+        Lower α = more smoothing, Higher α = more responsive
+        
+        Args:
+            track_id: Unique identifier for the track
+            new_speed: Raw speed value from calculation (km/h)
+            
+        Returns:
+            Smoothed speed value (km/h)
+        """
+        if track_id not in self.smoothed_speeds:
+            # First speed for this track - no smoothing needed
+            self.smoothed_speeds[track_id] = new_speed
+        else:
+            # Apply exponential smoothing: α * new + (1-α) * old
+            self.smoothed_speeds[track_id] = (
+                self.smoothing_alpha * new_speed + 
+                (1 - self.smoothing_alpha) * self.smoothed_speeds[track_id]
+            )
+        
+        return self.smoothed_speeds[track_id]
     
     def add_speed_and_distance_to_tracks(self,tracks):
         total_distance= {}
@@ -44,7 +73,8 @@ class SpeedAndDistance_Estimator():
                     for frame_num_batch in range(frame_num,last_frame):
                         if track_id not in tracks[object][frame_num_batch]:
                             continue
-                        tracks[object][frame_num_batch][track_id]['speed'] = speed_km_per_hour
+                        smoothed_speed = self.smooth_speed_exponential(track_id, speed_km_per_hour)
+                        tracks[object][frame_num_batch][track_id]['speed'] = smoothed_speed
                         tracks[object][frame_num_batch][track_id]['distance'] = total_distance[object][track_id]
     
     def draw_speed_and_distance(self, annotated_frame, tracks, frame_num=None):
