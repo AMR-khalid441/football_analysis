@@ -79,9 +79,9 @@ The following diagram shows the complete processing flow of the Football Analysi
 3. Run: `python main.py`
 4. Output saved to `output_videos/` with all detections and tracking
 
-## 🎥 Enhanced Output Demo
 
-Check out the enhanced output with all improvements and optimizations:
+
+
 
 
 ## 👨‍💻 Author
