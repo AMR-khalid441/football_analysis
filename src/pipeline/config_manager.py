@@ -1,7 +1,30 @@
 import os
 import logging
+import cv2
+from utils.parameter_scaler import scale_for_resolution
 
 logger = logging.getLogger("football_analysis")
+
+def get_video_resolution(video_path):
+    """
+    Get video resolution safely.
+    
+    Args:
+        video_path: Path to the video file
+        
+    Returns:
+        Tuple (width, height) or None if detection fails
+    """
+    try:
+        cap = cv2.VideoCapture(video_path)
+        if cap.isOpened():
+            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            cap.release()
+            return (width, height)
+    except Exception as e:
+        logger.warning(f"Could not detect video resolution: {e}")
+    return None
 
 def setup_configuration():
     """
@@ -33,6 +56,12 @@ def setup_configuration():
     model_path = os.path.join(script_dir, "models", "best.pt")
     track_stub_path = os.path.join(script_dir, "stubs", "track_stubs.pkl")
     camera_stub_path = os.path.join(script_dir, "stubs", "camera_movement_stub.pkl")
+    
+    # -------------------------------
+    # Resolution Detection
+    # -------------------------------
+    video_resolution = get_video_resolution(input_path)
+    logger.info(f"Video resolution: {video_resolution}")
 
     # -------------------------------
     # Checks
@@ -53,7 +82,7 @@ def setup_configuration():
         'BALL_MAX_GAP_FRAMES': BALL_MAX_GAP_FRAMES,
         'TEAM_CONFIDENCE_THRESHOLD': TEAM_CONFIDENCE_THRESHOLD,
         'TEAM_HYSTERESIS_FRAMES': TEAM_HYSTERESIS_FRAMES,
-        'TEAM_MIN_COLOR_SEPARATION': TEAM_MIN_COLOR_SEPARATION,
+        'TEAM_MIN_COLOR_SEPARATION': scale_for_resolution(TEAM_MIN_COLOR_SEPARATION, video_resolution),
         'input_path': input_path,
         'output_path': output_path,
         'model_path': model_path,
