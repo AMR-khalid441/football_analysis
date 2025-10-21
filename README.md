@@ -1,7 +1,27 @@
 # Football Analysis System
 
-
 A comprehensive football analysis system built with YOLOv5, ByteTrack, and advanced computer vision techniques for player detection, team assignment, and movement analysis.
+
+## 🎓 Training Notebook & Model Development
+
+### **📚 Complete Training Guide**
+Want to understand how the model was trained or train your own custom model?
+
+🔗 **[Football YOLOv5 Training Notebook](https://drive.google.com/drive/folders/1zk8Dbs9FHfxVOY8N28milCaVb83QV31t?usp=drive_link)**
+
+The notebook includes:
+- **Dataset Preparation**: Complete guide to data collection and labeling
+- **Model Configuration**: YOLOv5 setup and fine-tuning process  
+- **Training Pipeline**: Step-by-step training workflow
+- **Evaluation Metrics**: Performance analysis and validation
+- **Custom Model Creation**: Build your own specialized detection model
+
+### **📦 Pre-trained Model**
+Ready to use? Download our pre-trained model:
+
+👉 **[Download YOLOv5 Model (best.pt)](https://drive.google.com/file/d/1XVBKxLP5DHxaqX896YocF_476G0pH8FE/view?usp=drive_link)**
+
+🎥 **[Enhanced Output Video](https://drive.google.com/file/d/1fcuZMbf07YP7Rkro5sgi_cSQtp6wlX8D/view?usp=drive_link)** - Complete analysis with all enhancements applied
 
 ## 🚀 Quick Start
 
@@ -63,7 +83,6 @@ The following diagram shows the complete processing flow of the Football Analysi
 
 Check out the enhanced output with all improvements and optimizations:
 
-🎥 **[Enhanced Output Video](https://drive.google.com/file/d/1fcuZMbf07YP7Rkro5sgi_cSQtp6wlX8D/view?usp=drive_link)** - Complete analysis with all enhancements applied
 
 ## 👨‍💻 Author
 

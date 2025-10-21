@@ -64,15 +64,19 @@ football_analysis/
 └── src/
 ```
 
-### **Model Training (Optional)**
-If you want to train your own model:
+### **Model Training & Development**
+For those interested in training their own model or understanding the development process:
 
 🔗 **[Football YOLOv5 Training Notebook](https://drive.google.com/drive/folders/1zk8Dbs9FHfxVOY8N28milCaVb83QV31t?usp=drive_link)**
 
-The notebook includes:
-- Dataset preparation and labeling
-- Model configuration and fine-tuning process
-- Evaluation metrics and performance analysis
+#### **What's Included:**
+- **📊 Dataset Preparation**: Complete guide to data collection and labeling techniques
+- **⚙️ Model Configuration**: YOLOv5 setup, hyperparameter tuning, and fine-tuning process  
+- **🚀 Training Pipeline**: Step-by-step training workflow with best practices
+- **📈 Evaluation Metrics**: Comprehensive performance analysis and validation methods
+- **🔧 Custom Model Creation**: Build your own specialized detection model for different scenarios
+- **📝 Code Examples**: Ready-to-use code snippets and implementations
+- **🎯 Optimization Tips**: Performance tuning and model improvement strategies
 
 ---
 
