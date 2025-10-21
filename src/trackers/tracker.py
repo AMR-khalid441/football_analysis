@@ -1,337 +1,69 @@
-from ultralytics import YOLO
-import supervision as sv
-import pickle
-import os
-import numpy as np
-import pandas as pd
-import cv2
-import sys 
-sys.path.append('../')
-from utils.bbox_utils import get_center_of_bbox, get_bbox_width, get_foot_position
+from .components.model_manager import ModelManager
+from .components.detection_processor import DetectionProcessor
+from .components.tracking_engine import TrackingEngine
+from .components.visualizer import Visualizer
+from .components.track_utils import add_position_to_tracks, interpolate_ball_positions
 
 class Tracker:
     def __init__(self, model_path):
-        try:
-            self.model = YOLO(model_path) 
-            self.tracker = sv.ByteTrack()
-            print(f"✅ Successfully loaded custom model: {model_path}")
-        except Exception as e:
-            print(f"❌ Failed to load model {model_path}: {e}")
-            print("🔄 Trying to use a smaller model as fallback...")
-            # Fallback to a smaller model
-            self.model = YOLO('yolov5su.pt')  # Much smaller than yolov5x
-            self.tracker = sv.ByteTrack()
-            print("✅ Successfully loaded fallback model: yolov5su.pt")
-            print("⚠️  Note: Using COCO classes instead of custom football classes")
+        """
+        Simplified Tracker class that uses modular components
+        Maintains same interface as original tracker.py
+        """
+        # Initialize all components
+        self.model_manager = ModelManager(model_path)
+        self.detection_processor = DetectionProcessor(self.model_manager.model)
+        self.tracking_engine = TrackingEngine(self.model_manager.model, self.model_manager.tracker)
+        self.visualizer = Visualizer()
+        
+        # Expose model and tracker for backward compatibility
+        self.model = self.model_manager.model
+        self.tracker = self.model_manager.tracker
 
-    def add_position_to_tracks(sekf,tracks):
-        for object, object_tracks in tracks.items():
-            for frame_num, track in enumerate(object_tracks):
-                for track_id, track_info in track.items():
-                    bbox = track_info['bbox']
-                    if object == 'ball':
-                        position= get_center_of_bbox(bbox)
-                    else:
-                        position = get_foot_position(bbox)
-                    tracks[object][frame_num][track_id]['position'] = position
+    def add_position_to_tracks(self, tracks):
+        """
+        Delegate to track_utils function
+        """
+        return add_position_to_tracks(tracks)
 
-    def interpolate_ball_positions(self,ball_positions):
-        ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
-        df_ball_positions = pd.DataFrame(ball_positions,columns=['x1','y1','x2','y2'])
-
-        # Interpolate missing values
-        df_ball_positions = df_ball_positions.interpolate()
-        df_ball_positions = df_ball_positions.bfill()
-
-        ball_positions = [{1: {"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
-
-        return ball_positions
+    def interpolate_ball_positions(self, ball_positions):
+        """
+        Delegate to track_utils function
+        """
+        return interpolate_ball_positions(ball_positions)
 
     def detect_frames(self, frames):
-        batch_size=1  # Reduced from 20 to prevent OOM
-        detections = [] 
-        for i in range(0,len(frames),batch_size):
-            try:
-                # Force garbage collection before each prediction
-                import gc
-                gc.collect()
-                
-                # Use lower confidence to reduce memory usage
-                detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.1, verbose=False)
-                detections += detections_batch
-            except RuntimeError as e:
-                if "not enough memory" in str(e):
-                    print(f"Memory error in detection, skipping frame {i}: {e}")
-                    # Add empty detection to maintain frame count
-                    detections.append(None)
-                else:
-                    raise e
-        return detections
+        """
+        Delegate to detection_processor
+        """
+        return self.detection_processor.detect_frames(frames)
 
     def get_object_tracks(self, frames, read_from_stub=False, stub_path=None):
-        
-        if read_from_stub and stub_path is not None and os.path.exists(stub_path):
-            with open(stub_path,'rb') as f:
-                tracks = pickle.load(f)
-            return tracks
+        """
+        Delegate to tracking_engine
+        """
+        return self.tracking_engine.get_object_tracks(frames, read_from_stub, stub_path)
 
-        detections = self.detect_frames(frames)
+    def draw_ellipse(self, frame, bbox, color, track_id=None):
+        """
+        Delegate to visualizer
+        """
+        return self.visualizer.draw_ellipse(frame, bbox, color, track_id)
 
-        tracks={
-            "players":[],
-            "referees":[],
-            "ball":[]
-        }
-
-        for frame_num, detection in enumerate(detections):
-            # Handle case where detection failed due to memory error
-            if detection is None:
-                tracks["players"].append({})
-                tracks["referees"].append({})
-                tracks["ball"].append({})
-                continue
-                
-            cls_names = detection.names
-            cls_names_inv = {v:k for k,v in cls_names.items()}
-            
-            # Debug: Show available classes (only on first frame)
-            if frame_num == 0:
-                print(f"🔍 Available classes in model: {list(cls_names.keys())}")
-
-            # Covert to supervision Detection format
-            detection_supervision = sv.Detections.from_ultralytics(detection)
-
-            # Handle different model class names gracefully
-            # For custom models: ['ball', 'goalkeeper', 'player', 'referee']
-            # For COCO models: ['person', 'sports ball', ...]
-            player_class_id = None
-            referee_class_id = None
-            ball_class_id = None
-            
-            # Try to find appropriate class IDs
-            if 'player' in cls_names_inv:
-                player_class_id = cls_names_inv['player']
-            elif 'goalkeeper' in cls_names_inv:
-                player_class_id = cls_names_inv['goalkeeper']
-            elif 'person' in cls_names_inv:  # COCO fallback
-                player_class_id = cls_names_inv['person']
-                
-            if 'referee' in cls_names_inv:
-                referee_class_id = cls_names_inv['referee']
-            elif 'person' in cls_names_inv:  # COCO fallback - treat as referee
-                referee_class_id = cls_names_inv['person']
-                
-            if 'ball' in cls_names_inv:
-                ball_class_id = cls_names_inv['ball']
-            elif 'sports ball' in cls_names_inv:  # COCO fallback
-                ball_class_id = cls_names_inv['sports ball']
-
-            # Convert GoalKeeper to player object (if using custom model)
-            if 'goalkeeper' in cls_names_inv and 'player' in cls_names_inv:
-                for object_ind , class_id in enumerate(detection_supervision.class_id):
-                    if cls_names[class_id] == "goalkeeper":
-                        detection_supervision.class_id[object_ind] = cls_names_inv["player"]
-
-            # Track Objects
-            detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
-
-            tracks["players"].append({})
-            tracks["referees"].append({})
-            tracks["ball"].append({})
-
-            for frame_detection in detection_with_tracks:
-                bbox = frame_detection[0].tolist()
-                cls_id = frame_detection[3]
-                track_id = frame_detection[4]
-
-                # Use found class IDs or skip if not available
-                if player_class_id is not None and cls_id == player_class_id:
-                    tracks["players"][frame_num][track_id] = {"bbox":bbox}
-                
-                if referee_class_id is not None and cls_id == referee_class_id:
-                    tracks["referees"][frame_num][track_id] = {"bbox":bbox}
-            
-            for frame_detection in detection_supervision:
-                bbox = frame_detection[0].tolist()
-                cls_id = frame_detection[3]
-
-                if ball_class_id is not None and cls_id == ball_class_id:
-                    tracks["ball"][frame_num][1] = {"bbox":bbox}
-
-        if stub_path is not None:
-            with open(stub_path,'wb') as f:
-                pickle.dump(tracks,f)
-
-        return tracks
-    
-    def draw_ellipse(self,frame,bbox,color,track_id=None):
-        y2 = int(bbox[3])
-        x_center, _ = get_center_of_bbox(bbox)
-        width = get_bbox_width(bbox)
-
-        cv2.ellipse(
-            frame,
-            center=(x_center,y2),
-            axes=(int(width), int(0.35*width)),
-            angle=0.0,
-            startAngle=-45,
-            endAngle=235,
-            color = color,
-            thickness=2,
-            lineType=cv2.LINE_4
-        )
-
-        rectangle_width = 40
-        rectangle_height=20
-        x1_rect = x_center - rectangle_width//2
-        x2_rect = x_center + rectangle_width//2
-        y1_rect = (y2- rectangle_height//2) +15
-        y2_rect = (y2+ rectangle_height//2) +15
-
-        if track_id is not None:
-            cv2.rectangle(frame,
-                          (int(x1_rect),int(y1_rect) ),
-                          (int(x2_rect),int(y2_rect)),
-                          color,
-                          cv2.FILLED)
-            
-            x1_text = x1_rect+12
-            if track_id > 99:
-                x1_text -=10
-            
-            cv2.putText(
-                frame,
-                f"{track_id}",
-                (int(x1_text),int(y1_rect+15)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0,0,0),
-                2
-            )
-
-        return frame
-
-    def draw_traingle(self,frame,bbox,color):
-        y= int(bbox[1])
-        x,_ = get_center_of_bbox(bbox)
-
-        triangle_points = np.array([
-            [x,y],
-            [x-10,y-20],
-            [x+10,y-20],
-        ])
-        cv2.drawContours(frame, [triangle_points],0,color, cv2.FILLED)
-        cv2.drawContours(frame, [triangle_points],0,(0,0,0), 2)
-
-        return frame
+    def draw_triangle(self, frame, bbox, color):
+        """
+        Delegate to visualizer
+        """
+        return self.visualizer.draw_triangle(frame, bbox, color)
 
     def draw_annotations_single_frame(self, frame, frame_num, tracks, team_ball_control):
         """
-        Draw annotations for a single frame using the tracks structure.
-        Supports tracks["players"] and tracks["ball"] being either lists (per-frame entries)
-        or dicts mapping id -> detection.
+        Delegate to visualizer
         """
-        out = frame.copy()
+        return self.visualizer.draw_annotations_single_frame(frame, frame_num, tracks, team_ball_control)
 
-        # get players for this frame
-        players_list = tracks.get("players", [])
-        if isinstance(players_list, list):
-            players_frame = players_list[frame_num] if frame_num < len(players_list) else {}
-        elif isinstance(players_list, dict):
-            players_frame = players_list
-        else:
-            players_frame = {}
-
-        # normalize list-of-detections -> dict
-        if isinstance(players_frame, list):
-            players_dict = {}
-            for i, det in enumerate(players_frame):
-                if isinstance(det, dict) and "id" in det:
-                    pid = det["id"]
-                    players_dict[pid] = det
-                elif isinstance(det, (list, tuple)) and len(det) >= 4:
-                    players_dict[i] = {"bbox": det}
-                else:
-                    players_dict[i] = {"bbox": det}
-        elif isinstance(players_frame, dict):
-            players_dict = players_frame
-        else:
-            players_dict = {}
-
-        # draw players
-        for pid, pdata in players_dict.items():
-            bbox = pdata.get("bbox")
-            color = tuple(map(int, pdata.get("team_color", (0, 255, 0))))
-            if bbox and len(bbox) >= 4:
-                x1, y1, x2, y2 = map(int, bbox[:4])
-                cv2.rectangle(out, (x1, y1), (x2, y2), color, 2)
-                label = f"ID:{pid}"
-                cv2.putText(out, label, (x1, max(0, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2)
-                # optional ellipse under player
-                try:
-                    self.draw_ellipse(out, bbox, color, track_id=pid)
-                except Exception:
-                    pass
-
-        # draw ball if present
-        ball_list = tracks.get("ball", [])
-        if isinstance(ball_list, list):
-            ball_frame = ball_list[frame_num] if frame_num < len(ball_list) else {}
-        else:
-            ball_frame = ball_list
-
-        if isinstance(ball_frame, dict):
-            # expected format: {id: {"bbox": [...]}, ...} often ball id == 1
-            for bid, binfo in ball_frame.items():
-                bb = binfo.get("bbox")
-                if bb and len(bb) >= 4:
-                    x1, y1, x2, y2 = map(int, bb[:4])
-                    cx = int((x1 + x2) / 2)
-                    cy = int((y1 + y2) / 2)
-                    cv2.circle(out, (cx, cy), 8, (0, 165, 255), -1)
-        elif isinstance(ball_frame, (list, tuple)) and len(ball_frame) >= 4:
-            x1, y1, x2, y2 = map(int, ball_frame[:4])
-            cx = int((x1 + x2) / 2)
-            cy = int((y1 + y2) / 2)
-            cv2.circle(out, (cx, cy), 8, (0, 165, 255), -1)
-
-        # draw team ball control widget if available
-        try:
-            self.draw_team_ball_control(out, frame_num, team_ball_control)
-        except Exception:
-            pass
-
-        return out
-
-    def draw_annotations(self,video_frames, tracks,team_ball_control):
-        output_video_frames= []
-        for frame_num, frame in enumerate(video_frames):
-            frame = frame.copy()
-
-            player_dict = tracks["players"][frame_num]
-            ball_dict = tracks["ball"][frame_num]
-            referee_dict = tracks["referees"][frame_num]
-
-            # Draw Players
-            for track_id, player in player_dict.items():
-                color = player.get("team_color",(0,0,255))
-                frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
-
-                if player.get('has_ball',False):
-                    frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
-
-            # Draw Referee
-            for _, referee in referee_dict.items():
-                frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
-            
-            # Draw ball 
-            for track_id, ball in ball_dict.items():
-                frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
-
-
-            # Draw Team Ball Control
-            frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
-
-            output_video_frames.append(frame)
-
-        return output_video_frames
+    def draw_annotations(self, video_frames, tracks, team_ball_control):
+        """
+        Delegate to visualizer
+        """
+        return self.visualizer.draw_annotations(video_frames, tracks, team_ball_control)
