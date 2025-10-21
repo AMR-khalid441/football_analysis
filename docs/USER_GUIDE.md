@@ -88,9 +88,11 @@ The system generates annotated videos showing:
 - Camera motion compensation
 
 #### **Sample Videos**
-🎥 **[Sample Output Video 1](https://drive.google.com/file/d/1k2Qxd9zia1oz50TwX6sha8my_zZY7o-R/view?usp=sharing)** - Full match view with player and referee detection
+🎥 **[Sample Output Video 1](https://drive.google.com/file/d/1k2Qxd9zia1oz50TwX6sha8my_zZY7o-R/view?usp=sharing)** - Full match view with player and referee detection (Output before enhancements)
 
-🎥 **[Sample Output Video 2](https://drive.google.com/file/d/1LrR24f6LFKTV6bF0Ea3Ajp_T-xs0x9R4/view?usp=sharing)** - Local demo showing complete pipeline
+🎥 **[Sample Output Video 2](https://drive.google.com/file/d/1LrR24f6LFKTV6bF0Ea3Ajp_T-xs0x9R4/view?usp=sharing)** - Local demo showing complete pipeline (Output before enhancements)
+
+🎥 **[Enhanced Output Video](https://drive.google.com/file/d/1fcuZMbf07YP7Rkro5sgi_cSQtp6wlX8D/view?usp=drive_link)** - Complete analysis with all enhancements and optimizations applied
 
 ### **Output Features**
 - **Player Detection**: Bounding boxes around all players
